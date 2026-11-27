@@ -12,12 +12,19 @@ async function readGames(){return (await store().get('games',{type:'json'}))||[]
 function clean(body){if(!body||!String(body.name||'').trim()||!String(body.link||'').trim())throw Error('Game name and game link are required.');let u;try{u=new URL(body.link)}catch{throw Error('Enter a valid game URL.')}if(!['http:','https:'].includes(u.protocol))throw Error('Only HTTP or HTTPS links are allowed.');return {name:String(body.name).trim().slice(0,100),cat:String(body.cat||'Other').slice(0,60),desc:String(body.desc||'').slice(0,1000),link:u.href,photo:String(body.photo||'').slice(0,1500),disclosure:String(body.disclosure||'').slice(0,300)}}
 export default async req=>{
  const pathname = new URL(req.url).pathname;
- // Netlify rewrites may expose either the original /api/... URL
- // or the internal /.netlify/functions/api/... URL.
- const path = pathname
-   .replace(/^\\/api\\/?/, '')
-   .replace(/^\\/.netlify\\/functions\\/api\\/?/, '')
-   .replace(/^\\/+/, '');
+ // Accept both the public /api/... route and Netlify's internal
+ // /.netlify/functions/api/... path after the rewrite.
+ let path = pathname;
+ const publicPrefix = '/api/';
+ const internalPrefix = '/.netlify/functions/api/';
+ if (path.startsWith(publicPrefix)) {
+   path = path.slice(publicPrefix.length);
+ } else if (path.startsWith(internalPrefix)) {
+   path = path.slice(internalPrefix.length);
+ } else {
+   path = path.replace(/^\\/+/, '');
+ }
+ path = path.replace(/^\\/+/, '');
 
  if(req.method==='GET'&&path.startsWith('images/')){
   const key=path.slice('images/'.length);
