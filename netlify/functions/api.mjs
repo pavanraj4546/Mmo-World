@@ -22,9 +22,9 @@ export default async req=>{
  } else if (path.startsWith(internalPrefix)) {
    path = path.slice(internalPrefix.length);
  } else {
-   path = path.replace(/^\\/+/, '');
+    while (path.startsWith('/')) path = path.slice(1);
  }
- path = path.replace(/^\\/+/, '');
+  while (path.startsWith('/')) path = path.slice(1);
 
  if(req.method==='GET'&&path.startsWith('images/')){
   const key=path.slice('images/'.length);
